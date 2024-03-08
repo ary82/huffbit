@@ -66,13 +66,22 @@ func makeHuffTree(freqmap map[rune]int) HuffmanEle {
 	return heap.Pop(&huff).(HuffmanEle)
 }
 
-func getCodes(h HuffmanEle, codeMap map[rune]int) {
+func getCodes(h HuffmanEle, currentCode []byte, codeMap map[rune][]byte) {
 	switch i := h.(type) {
 	case Node:
+		currentCode = append(currentCode, 0)
+		getCodes(i.left, currentCode, codeMap)
+		currentCode = currentCode[:len(currentCode)-1]
 
+		currentCode = append(currentCode, 1)
+		getCodes(i.right, currentCode, codeMap)
+		currentCode = currentCode[:len(currentCode)-1]
 
 	case Leaf:
-		fmt.Printf("%c\t%d\t%d\n:", i.char, i.freq, codeMap[i.char])
+    // Assign a copy of the currentCode as the value of current char in map
+    temp := make([]byte, len(currentCode))
+    copy(temp, currentCode)
+    codeMap[i.char] = temp
 	}
 
 }
@@ -95,9 +104,10 @@ func compress() {
 	fmt.Println(freqMap)
 
 	a := makeHuffTree(freqMap)
-	codeMap := make(map[rune]int)
-	fmt.Println(a)
-	getCodes(a, codeMap)
+	codeMap := make(map[rune][]byte)
+
+	getCodes(a, []byte{}, codeMap)
+	fmt.Println(codeMap)
 }
 
 func main() {
