@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
 	"log"
 	"os"
@@ -13,8 +14,8 @@ type HuffmanEle interface {
 
 type Node struct {
 	freq  int
-	left  *HuffmanEle
-	right *HuffmanEle
+	left  HuffmanEle
+	right HuffmanEle
 }
 
 type Leaf struct {
@@ -29,26 +30,50 @@ func (l Leaf) getValue() int {
 	return l.freq
 }
 
-type PriorityQueue []HuffmanEle
+type HuffmanHeap []HuffmanEle
 
-func (pq PriorityQueue) Len() int {
-	return len(pq)
+func (h HuffmanHeap) Len() int {
+	return len(h)
 }
-func (pq PriorityQueue) Less(i int, j int) bool {
-	return pq[i].getValue() < pq[j].getValue()
+func (h HuffmanHeap) Less(i int, j int) bool {
+	return h[i].getValue() < h[j].getValue()
 }
-func (pq PriorityQueue) Swap(i int, j int) {
-	pq[i], pq[j] = pq[j], pq[i]
+func (h HuffmanHeap) Swap(i int, j int) {
+	h[i], h[j] = h[j], h[i]
 }
-func (pq *PriorityQueue) Push(i any) {
-	*pq = append(*pq, i.(HuffmanEle))
+func (h *HuffmanHeap) Push(i any) {
+	*h = append(*h, i.(HuffmanEle))
 }
-func (pq *PriorityQueue) Pop() any {
-	poppedEle := (*pq)[len(*pq)-1]
-	*pq = (*pq)[:len(*pq)-1]
+func (h *HuffmanHeap) Pop() any {
+	poppedEle := (*h)[len(*h)-1]
+	*h = (*h)[:len(*h)-1]
 	return poppedEle
 }
-func makeHuffTree() {
+
+func makeHuffTree(freqmap map[rune]int) HuffmanEle {
+	var huff HuffmanHeap
+	for i, v := range freqmap {
+		huff = append(huff, Leaf{v, i})
+	}
+	heap.Init(&huff)
+
+	for huff.Len() > 1 {
+		lowest := heap.Pop(&huff).(HuffmanEle)
+		secondLowest := heap.Pop(&huff).(HuffmanEle)
+		heap.Push(&huff, Node{lowest.getValue() + secondLowest.getValue(), lowest, secondLowest})
+	}
+
+	return heap.Pop(&huff).(HuffmanEle)
+}
+
+func getCodes(h HuffmanEle, codeMap map[rune]int) {
+	switch i := h.(type) {
+	case Node:
+
+
+	case Leaf:
+		fmt.Printf("%c\t%d\t%d\n:", i.char, i.freq, codeMap[i.char])
+	}
 
 }
 
@@ -69,8 +94,10 @@ func compress() {
 	}
 	fmt.Println(freqMap)
 
-	makeHuffTree()
-
+	a := makeHuffTree(freqMap)
+	codeMap := make(map[rune]int)
+	fmt.Println(a)
+	getCodes(a, codeMap)
 }
 
 func main() {
