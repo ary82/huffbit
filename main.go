@@ -23,14 +23,15 @@ type Leaf struct {
 	char rune
 }
 
+type HuffmanHeap []HuffmanEle
+
+// Functions to implement Interfaces
 func (n Node) getValue() int {
 	return n.freq
 }
 func (l Leaf) getValue() int {
 	return l.freq
 }
-
-type HuffmanHeap []HuffmanEle
 
 func (h HuffmanHeap) Len() int {
 	return len(h)
@@ -50,6 +51,7 @@ func (h *HuffmanHeap) Pop() any {
 	return poppedEle
 }
 
+// Makes the huffman tree, returns the main mode
 func makeHuffTree(freqmap map[rune]int) HuffmanEle {
 	var huff HuffmanHeap
 	for i, v := range freqmap {
@@ -78,15 +80,15 @@ func getCodes(h HuffmanEle, currentCode []byte, codeMap map[rune][]byte) {
 		currentCode = currentCode[:len(currentCode)-1]
 
 	case Leaf:
-    // Assign a copy of the currentCode as the value of current char in map
-    temp := make([]byte, len(currentCode))
-    copy(temp, currentCode)
-    codeMap[i.char] = temp
+		// Assign a copy of the currentCode as the value of current char in map
+		temp := make([]byte, len(currentCode))
+		copy(temp, currentCode)
+		codeMap[i.char] = temp
 	}
-
 }
 
 func compress() {
+	fmt.Println("compression mode")
 
 	if len(os.Args) < 3 {
 		log.Fatal("No file given")
@@ -101,13 +103,22 @@ func compress() {
 	for _, v := range filedata {
 		freqMap[rune(v)] += 1
 	}
-	fmt.Println(freqMap)
 
 	a := makeHuffTree(freqMap)
 	codeMap := make(map[rune][]byte)
 
 	getCodes(a, []byte{}, codeMap)
 	fmt.Println(codeMap)
+	// TODO: write to file
+}
+
+func decompress() {
+	fmt.Println("decompression mode")
+
+	if len(os.Args) < 3 {
+		log.Fatal("No file given")
+	}
+  // TODO: Implement
 }
 
 func main() {
@@ -120,10 +131,9 @@ func main() {
 
 	switch mode {
 	case "-c":
-		fmt.Println("compression mode")
 		compress()
 	case "-d":
-		fmt.Println("decompression mode")
+		decompress()
 	default:
 		fmt.Println("not recognized")
 	}
