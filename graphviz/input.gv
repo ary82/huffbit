@@ -1,0 +1,19 @@
+digraph input_string {
+  bgcolor=transparent
+  graph [fontsize=12 fontname="HackNerdFont" style=filled color=lightblue];
+  node [fontsize=12 fontname="HackNerdFont" style=filled color=white];
+
+  subgraph cluster_input {
+    label = "Input String";
+    rankdir=LR;
+    
+    h [label="h", shape=plaintext];
+    u [label="u", shape=plaintext];
+    f [label="f", shape=plaintext];
+    f2 [label="f", shape=plaintext];
+    b [label="b", shape=plaintext];
+    i [label="i", shape=plaintext];
+    t [label="t", shape=plaintext];
+  }
+
+}

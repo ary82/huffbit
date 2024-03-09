@@ -1,0 +1,82 @@
+digraph output_string {
+  bgcolor=transparent
+  graph [splines=ortho nodesep=0 fontsize=18 fontname="HackNerdFont" style=filled color=lightblue];
+  node [fontsize=20 fontname="HackNerdFont" style=filled color=white shape=box];
+
+  subgraph cluster_input {
+    label = "Input String";
+    rankdir=LR;
+    h [label="h", shape=plaintext];
+    u [label="u", shape=plaintext];
+    f [label="f", shape=plaintext];
+    f2 [label="f", shape=plaintext];
+    b [label="b", shape=plaintext];
+    i [label="i", shape=plaintext];
+    t [label="t", shape=plaintext];
+  }
+
+  subgraph cluster_byte1 {
+    label = "byte 1"
+    color = lightblue
+    rankdir=LR;
+    by1b1[label="1"];
+    by1b2[label="0"];
+    by1b3[label="1"];
+    by1b4[label="1"];
+    by1b5[label="1"];
+    by1b6[label="1"];
+    by1b7[label="0"];
+    by1b8[label="0"];
+  }
+  subgraph cluster_byte2 {
+    label = "byte 2"
+    color = lightblue
+    by2b1[label="0"];
+    by2b2[label="0"];
+    by2b3[label="1"];
+    by2b4[label="0"];
+    by2b5[label="0"];
+    by2b6[label="0"];
+    by2b7[label="1"];
+    by2b8[label="0"];
+  }
+  subgraph cluster_byte3 {
+    label = "byte 3"
+    color = lightblue
+    by3b1[label="0"];
+    by3b2[label="1"];
+    by3b3[label="1"];
+    by3b4[label="_"];
+    by3b5[label="_"];
+    by3b6[label="_"];
+    by3b7[label="_"];
+    by3b8[label="_"];
+  }
+
+  // Connections
+  h -> by1b1
+  h -> by1b2
+  h -> by1b3
+
+  u -> by1b4
+  u -> by1b5
+  u -> by1b6
+
+  f -> by1b7
+  f -> by1b8
+
+  f2 -> by2b1
+  f2 -> by2b2
+
+  b -> by2b3
+  b -> by2b4
+  b -> by2b5
+
+  i -> by2b6
+  i -> by2b7
+  i -> by2b8
+
+  t -> by3b1
+  t -> by3b2
+  t -> by3b3
+}

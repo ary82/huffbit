@@ -125,7 +125,7 @@ func getCompressedData(file []byte, codeMap map[rune][]byte) []byte {
 }
 
 func compress() {
-	fmt.Println("compression mode")
+	fmt.Println("compressing file")
 
 	if len(os.Args) < 3 {
 		panic("No file given")
@@ -201,7 +201,7 @@ func getUncompressedData(compressedData []byte, codeMap map[string]rune) []byte 
 				buffer = append(buffer, 48)
 			}
 
-      // Check if value exists in map
+			// Check if value exists in map
 			value, exists := codeMap[string(buffer)]
 			if exists {
 				uncompressedData = append(uncompressedData, byte(value))
@@ -213,7 +213,7 @@ func getUncompressedData(compressedData []byte, codeMap map[string]rune) []byte 
 }
 
 func decompress() {
-	fmt.Println("decompression mode")
+	fmt.Println("decompressing file")
 
 	if len(os.Args) < 3 {
 		panic("No file given")
