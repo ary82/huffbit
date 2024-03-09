@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"container/heap"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 	"sort"
 )
 
@@ -117,6 +116,11 @@ func getCompressedData(file []byte, codeMap map[rune][]byte) []byte {
 			}
 		}
 	}
+	// Prevent Data Loss at the cost of appending some garbage characters at the end of the file
+	if written != 0 {
+		currentByte = currentByte << (8 - written)
+		compressedData = append(compressedData, currentByte)
+	}
 	return compressedData
 }
 
@@ -124,7 +128,7 @@ func compress() {
 	fmt.Println("compression mode")
 
 	if len(os.Args) < 3 {
-		log.Fatal("No file given")
+		panic("No file given")
 	}
 
 	filedata, err := os.ReadFile(os.Args[2])
@@ -136,17 +140,15 @@ func compress() {
 	}
 
 	huffmanTree := makeHuffTree(freqMap)
-	fmt.Println(huffmanTree)
 	codeMap := make(map[rune][]byte)
 
 	getCodes(huffmanTree, []byte{}, codeMap)
-	fmt.Println(codeMap)
 
 	// Create new file
-	outputFile, err := os.Create("compressed.data")
+	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".huffbit"))
 	panicErr(err)
 
-	// Write Header(Huffman tree)
+	// Write Header(Huffman tree). Slicing to avoid writing 'map'
 	header := (fmt.Sprint(freqMap))[3:]
 	_, err = outputFile.Write([]byte(header))
 	panicErr(err)
@@ -186,7 +188,7 @@ func parseHeader(header []byte) (map[rune]int, int) {
 	return freqMap, end
 }
 
-func getUncompressedData(compressedData []byte, codeMap map[rune][]byte) []byte {
+func getUncompressedData(compressedData []byte, codeMap map[string]rune) []byte {
 	var uncompressedData []byte
 	var buffer []byte
 
@@ -198,20 +200,15 @@ func getUncompressedData(compressedData []byte, codeMap map[rune][]byte) []byte 
 			} else {
 				buffer = append(buffer, 48)
 			}
-			// buffer = append(buffer, ((v>>(7-i))&1)+48)
-			// fmt.Println((v >> (7 - i)))
 
-			for key, value := range codeMap {
-				if bytes.Equal(value, buffer) {
-					fmt.Println(key)
-					uncompressedData = append(uncompressedData, byte(key))
-					buffer = []byte{}
-
-				}
+      // Check if value exists in map
+			value, exists := codeMap[string(buffer)]
+			if exists {
+				uncompressedData = append(uncompressedData, byte(value))
+				buffer = []byte{}
 			}
 		}
 	}
-
 	return uncompressedData
 }
 
@@ -219,7 +216,7 @@ func decompress() {
 	fmt.Println("decompression mode")
 
 	if len(os.Args) < 3 {
-		log.Fatal("No file given")
+		panic("No file given")
 	}
 	filedata, err := os.ReadFile(os.Args[2])
 	panicErr(err)
@@ -232,13 +229,16 @@ func decompress() {
 	codeMap := make(map[rune][]byte)
 	getCodes(huffmanTree, []byte{}, codeMap)
 
+	newcodeMap := make(map[string]rune)
+	for key, value := range codeMap {
+		newcodeMap[string(value)] = key
+	}
+
 	// Create new file
-	outputFile, err := os.Create("uncompressed.txt")
+	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".original"))
 	panicErr(err)
 
-	fmt.Println(huffmanTree)
-	fmt.Println(codeMap)
-	toBeWritten := getUncompressedData(filedata[endOfHeader:], codeMap)
+	toBeWritten := getUncompressedData(filedata[endOfHeader:], newcodeMap)
 	_, err = outputFile.Write(toBeWritten)
 	panicErr(err)
 }
@@ -252,7 +252,7 @@ func panicErr(err error) {
 func main() {
 
 	if len(os.Args) < 2 {
-		log.Fatal("needs more args")
+		panic("Needs more args")
 	}
 
 	mode := os.Args[1]
@@ -263,7 +263,6 @@ func main() {
 	case "-d":
 		decompress()
 	default:
-		fmt.Println("not recognized")
+		fmt.Println("not a recognized option")
 	}
-
 }
