@@ -71,11 +71,11 @@ func makeHuffTree(freqmap map[rune]int) HuffmanEle {
 func getCodes(h HuffmanEle, currentCode []byte, codeMap map[rune][]byte) {
 	switch i := h.(type) {
 	case Node:
-		currentCode = append(currentCode, 0)
+		currentCode = append(currentCode, '0')
 		getCodes(i.left, currentCode, codeMap)
 		currentCode = currentCode[:len(currentCode)-1]
 
-		currentCode = append(currentCode, 1)
+		currentCode = append(currentCode, '1')
 		getCodes(i.right, currentCode, codeMap)
 		currentCode = currentCode[:len(currentCode)-1]
 
@@ -87,6 +87,30 @@ func getCodes(h HuffmanEle, currentCode []byte, codeMap map[rune][]byte) {
 	}
 }
 
+func getCompressedData(file []byte, codeMap map[rune][]byte) []byte {
+	var currentByte byte
+	var compressedData []byte
+	written := 0
+
+	for _, v := range file {
+		for _, b := range codeMap[rune(v)] {
+			if written == 8 {
+				written = 0
+				compressedData = append(compressedData, currentByte)
+			}
+			if b == '1' {
+				currentByte = currentByte << 1
+				currentByte += 1
+				written += 1
+			} else {
+				currentByte = currentByte << 1
+				written += 1
+			}
+		}
+	}
+	return compressedData
+}
+
 func compress() {
 	fmt.Println("compression mode")
 
@@ -95,9 +119,7 @@ func compress() {
 	}
 
 	filedata, err := os.ReadFile(os.Args[2])
-	if err != nil {
-		log.Fatal(err)
-	}
+	panicErr(err)
 
 	freqMap := make(map[rune]int)
 	for _, v := range filedata {
@@ -105,11 +127,25 @@ func compress() {
 	}
 
 	a := makeHuffTree(freqMap)
+	fmt.Println(a)
 	codeMap := make(map[rune][]byte)
 
 	getCodes(a, []byte{}, codeMap)
 	fmt.Println(codeMap)
-	// TODO: write to file
+
+	// Create new file
+	outputFile, err := os.Create("compressed.data")
+	panicErr(err)
+
+	// Write Header(Huffman tree)
+	header := fmt.Sprintln(a)
+	_, err = outputFile.Write([]byte(header))
+	panicErr(err)
+
+	// Write Compressed data
+	toBeWritten := getCompressedData(filedata, codeMap)
+	_, err = outputFile.Write(toBeWritten)
+	panicErr(err)
 }
 
 func decompress() {
@@ -118,7 +154,13 @@ func decompress() {
 	if len(os.Args) < 3 {
 		log.Fatal("No file given")
 	}
-  // TODO: Implement
+	// TODO: Implement
+}
+
+func panicErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
