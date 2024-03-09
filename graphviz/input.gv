@@ -14,6 +14,7 @@ digraph input_string {
     b [label="b", shape=plaintext];
     i [label="i", shape=plaintext];
     t [label="t", shape=plaintext];
+    newline [label="\\n", shape=plaintext];
   }
 
 }
