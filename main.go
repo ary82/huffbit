@@ -52,9 +52,45 @@ func (h *HuffmanHeap) Pop() any {
 	return poppedEle
 }
 
-// Extra Function for Line:68
+// Sort helper Function for See Line:103
 func (h HuffmanHeap) LessLeaf(i int, j int) bool {
 	return int(h[i].(Leaf).char) < int(h[j].(Leaf).char)
+}
+
+// Primary function for compression
+func compress() {
+	fmt.Println("compressing file")
+
+	if len(os.Args) < 3 {
+		panic("No file given")
+	}
+
+	filedata, err := os.ReadFile(os.Args[2])
+	panicErr(err)
+
+	freqMap := make(map[rune]int)
+	for _, v := range filedata {
+		freqMap[rune(v)] += 1
+	}
+
+	huffmanTree := makeHuffTree(freqMap)
+	codeMap := make(map[rune][]byte)
+
+	getCodes(huffmanTree, []byte{}, codeMap)
+
+	// Create new file
+	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".huffbit"))
+	panicErr(err)
+
+	// Write Header(Huffman tree). Slicing to avoid writing 'map'
+	header := (fmt.Sprint(freqMap))[3:]
+	_, err = outputFile.Write([]byte(header))
+	panicErr(err)
+
+	// Write Compressed data
+	toBeWritten := getCompressedData(filedata, codeMap)
+	_, err = outputFile.Write(toBeWritten)
+	panicErr(err)
 }
 
 // Makes the huffman tree, returns the main mode
@@ -124,37 +160,34 @@ func getCompressedData(file []byte, codeMap map[rune][]byte) []byte {
 	return compressedData
 }
 
-func compress() {
-	fmt.Println("compressing file")
+// Primary function for decompression
+func decompress() {
+	fmt.Println("decompressing file")
 
 	if len(os.Args) < 3 {
 		panic("No file given")
 	}
-
 	filedata, err := os.ReadFile(os.Args[2])
 	panicErr(err)
 
-	freqMap := make(map[rune]int)
-	for _, v := range filedata {
-		freqMap[rune(v)] += 1
-	}
+	freqMap, endOfHeader := parseHeader(filedata)
 
 	huffmanTree := makeHuffTree(freqMap)
-	codeMap := make(map[rune][]byte)
 
+	// Make codeMap from HuffmanTree
+	codeMap := make(map[rune][]byte)
 	getCodes(huffmanTree, []byte{}, codeMap)
 
+	newcodeMap := make(map[string]rune)
+	for key, value := range codeMap {
+		newcodeMap[string(value)] = key
+	}
+
 	// Create new file
-	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".huffbit"))
+	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".original"))
 	panicErr(err)
 
-	// Write Header(Huffman tree). Slicing to avoid writing 'map'
-	header := (fmt.Sprint(freqMap))[3:]
-	_, err = outputFile.Write([]byte(header))
-	panicErr(err)
-
-	// Write Compressed data
-	toBeWritten := getCompressedData(filedata, codeMap)
+	toBeWritten := getUncompressedData(filedata[endOfHeader:], newcodeMap)
 	_, err = outputFile.Write(toBeWritten)
 	panicErr(err)
 }
@@ -210,37 +243,6 @@ func getUncompressedData(compressedData []byte, codeMap map[string]rune) []byte 
 		}
 	}
 	return uncompressedData
-}
-
-func decompress() {
-	fmt.Println("decompressing file")
-
-	if len(os.Args) < 3 {
-		panic("No file given")
-	}
-	filedata, err := os.ReadFile(os.Args[2])
-	panicErr(err)
-
-	freqMap, endOfHeader := parseHeader(filedata)
-
-	huffmanTree := makeHuffTree(freqMap)
-
-	// Make codeMap from HuffmanTree
-	codeMap := make(map[rune][]byte)
-	getCodes(huffmanTree, []byte{}, codeMap)
-
-	newcodeMap := make(map[string]rune)
-	for key, value := range codeMap {
-		newcodeMap[string(value)] = key
-	}
-
-	// Create new file
-	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".original"))
-	panicErr(err)
-
-	toBeWritten := getUncompressedData(filedata[endOfHeader:], newcodeMap)
-	_, err = outputFile.Write(toBeWritten)
-	panicErr(err)
 }
 
 func panicErr(err error) {
