@@ -86,4 +86,4 @@ After Writing the necessary headers, the encoded characters will be written to t
     <img alt="representation of output bytes" src="./graphviz/output.svg">
 </p>
 
-After compression, we can see the bytes needed get ruduced from 7 in "huffbit" to just 3 in the compressed file, making it an effective compression of 57%
+After compression, we can see the bytes needed get reduced from 8 in "huffbit\n" to just 3 in the compressed file, making it a theoretical compression of 62%
