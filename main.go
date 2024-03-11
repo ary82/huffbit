@@ -152,7 +152,8 @@ func getCompressedData(file []byte, codeMap map[rune][]byte) []byte {
 			}
 		}
 	}
-	// Prevent Data Loss at the cost of appending some garbage characters at the end of the file
+	// Prevent character loss at the end at the cost of appending some garbage characters at the end of the file.
+  // These are then handled in the decompression phase.
 	if written != 0 {
 		currentByte = currentByte << (8 - written)
 		compressedData = append(compressedData, currentByte)
@@ -172,6 +173,12 @@ func decompress() {
 
 	freqMap, endOfHeader := parseHeader(filedata)
 
+	// Total characters
+	totalChar := 0
+	for _, freq := range freqMap {
+		totalChar += freq
+	}
+
 	huffmanTree := makeHuffTree(freqMap)
 
 	// Make codeMap from HuffmanTree
@@ -187,7 +194,8 @@ func decompress() {
 	outputFile, err := os.Create(fmt.Sprint(filepath.Base(os.Args[2]), ".original"))
 	panicErr(err)
 
-	toBeWritten := getUncompressedData(filedata[endOfHeader:], newcodeMap)
+  // Passing filedata except the header, then slicing till the total number of characters in the original file.
+	toBeWritten := (getUncompressedData(filedata[endOfHeader:], newcodeMap))[:totalChar]
 	_, err = outputFile.Write(toBeWritten)
 	panicErr(err)
 }
