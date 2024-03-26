@@ -30,19 +30,25 @@ git clone https://github.com/ary82/huffbit.git && cd huffbit
 ### Build:
 
 ```bash
-go build
+go build -o ./bin/
 ```
 
-This will create an executable in your current directory.
+or using make,
+
+```bash
+make build
+```
+
+This will create an executable in the bin directory.
 (Optionally add this file to your path)
 
 ### Use:
 
 ```bash
 # Compress a file
-./huffbit -c /your/txt/file
+./bin/huffbit -c /your/txt/file
 # Decompress a file
-./huffbit -c /your/txt/file.huffbit
+./bin/huffbit -d /your/txt/file.huffbit
 ```
 
 or if you've added the executable to your path,
@@ -51,7 +57,7 @@ or if you've added the executable to your path,
 # Compress a file
 huffbit -c /your/txt/file
 # Decompress a file
-huffbit -c /your/txt/file.huffbit
+huffbit -d /your/txt/file.huffbit
 ```
 
 ## Working
